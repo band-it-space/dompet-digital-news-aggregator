@@ -1,7 +1,7 @@
 import Parser from "rss-parser";
 import * as cheerio from "cheerio";
 import { trackMixpanel } from "../mixpanel.js";
-import { postsAddingService } from "../services/PostsAddingService.js";
+// import { postsAddingService } from "../services/PostsAddingService.js";
 
 const toArray = (v) => (Array.isArray(v) ? v : v != null ? [v] : []);
 
@@ -62,11 +62,13 @@ export async function fetchFinTechNews() {
         if (!feed) throw new Error("Failed to fetch or parse the RSS feed.");
 
         const now = new Date();
+        const dateNowStringify = now.toISOString();
 
         if (!inLastHour(feed.lastBuildDate, now)) {
             console.log("No new updates in the last hour.");
             trackMixpanel(
                 "FinTechNews",
+                dateNowStringify,
                 0,
                 true,
                 "No new updates in the last hour."
@@ -94,12 +96,18 @@ export async function fetchFinTechNews() {
 
         trackMixpanel(
             "FinTechNews",
+            dateNowStringify,
             articles.length,
             true,
             "Parsing completed successfully"
         );
-        //postsAddingService("FinTechNews", articles);
+        postsAddingService("FinTechNews", articles);
     } catch (error) {
         console.error("FinTechNews crawler error:", error);
     }
 }
+
+// For testing purpose
+(async () => {
+    await fetchFinTechNews();
+})();
