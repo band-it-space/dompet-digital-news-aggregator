@@ -62,7 +62,9 @@ export async function fetchFinTechNews() {
         if (!feed) throw new Error("Failed to fetch or parse the RSS feed.");
 
         const now = new Date();
-        const dateNowStringify = now.toISOString();
+        const dateNowStringifyForMixpanel = now.toLocaleString("uk-UA");
+
+        console.log(dateNowStringifyForMixpanel);
 
         if (!inLastHour(feed.lastBuildDate, now)) {
             console.log("No new updates in the last hour.");
@@ -101,7 +103,7 @@ export async function fetchFinTechNews() {
             true,
             "Parsing completed successfully"
         );
-        postsAddingService("FinTechNews", articles);
+        // postsAddingService("FinTechNews", articles);
     } catch (error) {
         console.error("FinTechNews crawler error:", error);
     }
