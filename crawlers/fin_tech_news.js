@@ -1,6 +1,8 @@
 import Parser from "rss-parser";
 import * as cheerio from "cheerio";
 import { trackMixpanel } from "../mixpanel.js";
+import { assistant } from "../services/AssistantTextGenService.js";
+import { sheet } from "../services/GoogleSheetService.js";
 // import { postsAddingService } from "../services/PostsAddingService.js";
 
 const toArray = (v) => (Array.isArray(v) ? v : v != null ? [v] : []);
@@ -103,7 +105,37 @@ export async function fetchFinTechNews() {
             true,
             "Parsing completed successfully"
         );
-        // postsAddingService("FinTechNews", articles);
+
+        const rewordedArticles = await Promise.all(
+            articles.map(async (article) => {
+                try {
+                    const rewordedArticle = await assistant(
+                        article.title,
+                        article.contentHtml
+                    );
+
+                    return {
+                        ...article,
+                        categories: article.categories.join(", "),
+                        reworded_title_en: rewordedArticle.en.title,
+                        reworded_content_en: rewordedArticle.en.content,
+                        excerpt_en: rewordedArticle.en.excerpt,
+                        reworded_title_id: rewordedArticle.id.title,
+                        reworded_content_id: rewordedArticle.id.content,
+                        excerpt_id: rewordedArticle.id.excerpt,
+                    };
+                } catch (error) {
+                    console.error(
+                        "Error rewording article:",
+                        article.title,
+                        err
+                    );
+                    return null;
+                }
+            })
+        );
+        const filteredRewordedArticles = rewordedArticles.filter(Boolean);
+        await sheet.appendRows(filteredRewordedArticles);
     } catch (error) {
         console.error("FinTechNews crawler error:", error);
     }
