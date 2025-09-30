@@ -108,6 +108,6 @@ export async function fetchFinTechNews() {
 }
 
 // For testing purpose
-(async () => {
-    await fetchFinTechNews();
-})();
+// (async () => {
+//     await fetchFinTechNews();
+// })();
