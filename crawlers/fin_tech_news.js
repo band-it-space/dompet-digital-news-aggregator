@@ -72,7 +72,7 @@ export async function fetchFinTechNews() {
             console.log("No new updates in the last hour.");
             trackMixpanel(
                 "FinTechNews",
-                dateNowStringify,
+                dateNowStringifyForMixpanel,
                 0,
                 true,
                 "No new updates in the last hour."
@@ -100,7 +100,7 @@ export async function fetchFinTechNews() {
 
         trackMixpanel(
             "FinTechNews",
-            dateNowStringify,
+            dateNowStringifyForMixpanel,
             articles.length,
             true,
             "Parsing completed successfully"
