@@ -13,6 +13,7 @@ const mixpanel = Mixpanel.init(MIXPANEL_TOKEN, {
 export const trackMixpanel = async (
     crawler,
     stringDate,
+    links,
     totalPosts,
     successful,
     message
@@ -22,6 +23,7 @@ export const trackMixpanel = async (
         {
             posts_found: totalPosts,
             posted_date: stringDate,
+            links: links,
             status: successful ? "Success" : "Fail",
             message: message ? message : "Parsing completed successfully",
         },

@@ -31,7 +31,9 @@ const cleanContent = (html = "") => {
         })
         .remove();
 
-    return { content: $("body").html() || "", originImg: originImg ?? "" };
+    $("img").remove();
+    const cleanText = $("body").text().trim();
+    return { content: cleanText || "", originImg: originImg ?? "" };
 };
 
 const inLastHour = (date, now = new Date()) => {
@@ -73,6 +75,7 @@ export async function fetchFinTechNews() {
             trackMixpanel(
                 "FinTechNews",
                 dateNowStringifyForMixpanel,
+                "",
                 0,
                 true,
                 "No new updates in the last hour."
@@ -101,6 +104,7 @@ export async function fetchFinTechNews() {
         trackMixpanel(
             "FinTechNews",
             dateNowStringifyForMixpanel,
+            articles.map((a) => a.link).join("; "),
             articles.length,
             true,
             "Parsing completed successfully"
