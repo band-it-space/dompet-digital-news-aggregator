@@ -57,6 +57,6 @@ class GoogleSpreadsheetService {
 }
 export const sheet = await GoogleSpreadsheetService.init({
     credsPath: fileURLToPath(new URL("./search_creds.json", import.meta.url)),
-    spreadsheetId: "1vNY6EHU2LHnVY-gCFtElqgas1NlFT4YtPwKzp7L6O8U",
-    sheetIndex: 3,
+    spreadsheetId: "1WIYCKq1ZyoKA0jXj2GT9T_LeYkF7TKw7tju5EaQgsew",
+    sheetIndex: 0,
 });

@@ -1,9 +1,12 @@
+import fs from "fs";
 import Parser from "rss-parser";
 import * as cheerio from "cheerio";
 import { trackMixpanel } from "../mixpanel.js";
 import { assistant } from "../services/AssistantTextGenService.js";
 import { sheet } from "../services/GoogleSheetService.js";
 // import { postsAddingService } from "../services/PostsAddingService.js";
+
+const filePath = "./data/fin_tech_news.txt";
 
 const toArray = (v) => (Array.isArray(v) ? v : v != null ? [v] : []);
 
@@ -70,22 +73,65 @@ export async function fetchFinTechNews() {
 
         console.log(dateNowStringifyForMixpanel);
 
-        if (!inLastHour(feed.lastBuildDate, now)) {
-            console.log("No new updates in the last hour.");
-            trackMixpanel(
-                "FinTechNews",
-                dateNowStringifyForMixpanel,
-                "",
-                0,
-                true,
-                "No new updates in the last hour."
+        // if (!inLastHour(feed.lastBuildDate, now)) {
+        // console.log("No new updates in the last hour.");
+        // trackMixpanel(
+        //     "FinTechNews",
+        //     dateNowStringifyForMixpanel,
+        //     "",
+        //     0,
+        //     true,
+        //     "No new updates in the last hour."
+        // );
+        //     return;
+        // }
+        let uniqueArticles = [];
+        if (fs.existsSync(filePath)) {
+            let articlesFromFile = fs
+                .readFileSync(filePath, "utf8")
+                .split("\n")
+                .filter(Boolean);
+
+            //check file length and trim if too long
+            if (articlesFromFile.length > 100) {
+                articlesFromFile = articlesFromFile.slice(50);
+                fs.writeFileSync(filePath, articlesFromFile.join("\n") + "\n");
+            }
+            feed.items.map((item) => console.log(item.link));
+
+            const articlesSet = new Set(articlesFromFile);
+            uniqueArticles = feed.items.filter(
+                (item) => !articlesSet.has(item.link)
             );
-            return;
+
+            if (uniqueArticles.length === 0) {
+                console.log("No new updates in the last hour.");
+                trackMixpanel(
+                    "FinTechNews",
+                    dateNowStringifyForMixpanel,
+                    "",
+                    0,
+                    true,
+                    "No new updates in the last hour."
+                );
+                return;
+            }
+            fs.appendFileSync(
+                filePath,
+                uniqueArticles.map((it) => it.link).join("\n") + "\n"
+            );
+        } else {
+            fs.writeFileSync(
+                filePath,
+                feed.items.map((it) => it.link).join("\n") + "\n"
+            );
+            uniqueArticles.push(...feed.items);
         }
-        const recentItems = feed.items.filter((it) =>
-            inLastHour(it.isoDate || it.pubDate, now)
-        );
-        const articles = recentItems.map((item) => {
+
+        // const recentItems = feed.items.filter((it) =>
+        //     inLastHour(it.isoDate || it.pubDate, now)
+        // );
+        const articles = uniqueArticles.map((item) => {
             const { content, originImg } = cleanContent(
                 item.contentHtml || item.content || item.description || ""
             );
@@ -140,6 +186,7 @@ export async function fetchFinTechNews() {
         );
         const filteredRewordedArticles = rewordedArticles.filter(Boolean);
         await sheet.appendRows(filteredRewordedArticles);
+        console.log("Parsed new articles:", articles.length);
     } catch (error) {
         console.error("FinTechNews crawler error:", error);
     }
