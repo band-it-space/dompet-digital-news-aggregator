@@ -61,10 +61,10 @@ const parser = new Parser({
 });
 
 export async function fetchFinTechNews() {
+    console.log("FinTechNews crawler started");
+    let feed;
     try {
-        console.log("FinTechNews crawler started");
-
-        const feed = await parser.parseURL("https://fintechnews.sg/feed/");
+        feed = await parser.parseURL("https://fintechnews.sg/feed/");
 
         if (!feed) throw new Error("Failed to fetch or parse the RSS feed.");
 
@@ -178,7 +178,7 @@ export async function fetchFinTechNews() {
                     console.error(
                         "Error rewording article:",
                         article.title,
-                        err
+                        error
                     );
                     return null;
                 }
@@ -189,6 +189,14 @@ export async function fetchFinTechNews() {
         console.log("Parsed new articles:", articles.length);
     } catch (error) {
         console.error("FinTechNews crawler error:", error);
+        trackMixpanel(
+            "FinTechNews",
+            [],
+            "",
+            0,
+            false,
+            $`FinTechNews crawler error: ${error}`
+        );
     }
 }
 
