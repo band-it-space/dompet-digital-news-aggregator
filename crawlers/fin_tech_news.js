@@ -39,13 +39,6 @@ const cleanContent = (html = "") => {
     return { content: cleanText || "", originImg: originImg ?? "" };
 };
 
-const inLastHour = (date, now = new Date()) => {
-    const postDate = new Date(date || 0);
-    if (Number.isNaN(postDate.getTime())) return false;
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    return postDate > oneHourAgo && postDate <= now;
-};
-
 const parser = new Parser({
     headers: {
         Accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
@@ -192,7 +185,7 @@ export async function fetchFinTechNews() {
             "",
             0,
             false,
-            $`FinTechNews crawler error: ${error}`
+            `FinTechNews crawler error: ${error}`
         );
     }
 }
