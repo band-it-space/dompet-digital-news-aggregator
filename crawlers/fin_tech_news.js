@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import Parser from "rss-parser";
 import * as cheerio from "cheerio";
 import { trackMixpanel } from "../mixpanel.js";
@@ -7,6 +8,10 @@ import { sheet } from "../services/GoogleSheetService.js";
 import { postsAddingService } from "../services/PostsAddingService.js";
 
 const filePath = "./data/fin_tech_news.txt";
+const dir = path.dirname(filePath);
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+}
 
 const toArray = (v) => (Array.isArray(v) ? v : v != null ? [v] : []);
 
@@ -171,7 +176,7 @@ export async function fetchFinTechNews() {
         const filteredRewordedArticles = rewordedArticles.filter(Boolean);
         // await sheet.appendRows(filteredRewordedArticles);
         console.log("Parsed new articles:", articles.length);
-        await postsAddingService("FinTechNews Test", filteredRewordedArticles);
+        await postsAddingService("FinTechNews", filteredRewordedArticles);
         fs.appendFileSync(
             filePath,
             uniqueArticles.map((it) => it.link).join("\n") + "\n"
