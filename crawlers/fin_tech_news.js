@@ -5,7 +5,6 @@ import { trackMixpanel } from "../mixpanel.js";
 import { assistant } from "../services/AssistantTextGenService.js";
 import { sheet } from "../services/GoogleSheetService.js";
 import { postsAddingService } from "../services/PostsAddingService.js";
-// import { postsAddingService } from "../services/PostsAddingService.js";
 
 const filePath = "./data/fin_tech_news.txt";
 
@@ -130,6 +129,7 @@ export async function fetchFinTechNews() {
         });
 
         trackMixpanel(
+            "Parser",
             "FinTechNews",
             dateNowStringifyForMixpanel,
             articles.map((a) => a.link).join("; "),
