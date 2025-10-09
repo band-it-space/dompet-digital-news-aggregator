@@ -9,9 +9,15 @@ const MAIN_URL = process.env.MAIN_URL;
 const WP_USER = process.env.WP_USER;
 const WP_PASS = process.env.WP_PASS;
 
+const POST_STATUS = "draft";
+const DEFAULT_CATEGORY_EN = 7;
+const DEFAULT_CATEGORY_ID = 1;
+const AUTHOR_ID = 2;
+
 if (!MAIN_URL || !WP_PASS || !WP_USER) {
     throw new Error("Missed frontend credentials");
 }
+
 const basicToken = Buffer.from(`${WP_USER}:${WP_PASS}`).toString("base64");
 const defaultHeaders = {
     "Content-Type": "application/json",
@@ -83,18 +89,56 @@ const addPost = async (source, date, post, lang, status = "draft") => {
 };
 
 export const postsAddingService = async (source, posts) => {
+    console.log(posts);
+
     const now = new Date();
     const dateNowStringifyForMixpanel = now.toLocaleString("uk-UA");
     console.log(`Start saving process for ${source}`);
 
     try {
         const savedPosts = [];
-        //TODO get author from WP
-        const author = 2;
 
-        const POST_STATUS = "draft";
+        let categories = null;
+        try {
+            const { data } = await axios.get(
+                `${MAIN_URL}wp-json/wp/v2/categories?per_page=100`,
+                {
+                    headers: defaultHeaders,
+                    timeout: 20000,
+                }
+            );
+            categories = data;
+            console.log(categories);
+        } catch (error) {
+            console.log("Error preparation categories!", error.message);
+        }
 
         for (const post of posts) {
+            const categoriesEn = [];
+            const categoriesId = [];
+
+            if (categories?.length > 0) {
+                for (const category of categories) {
+                    if (post.categories.includes(category.name)) {
+                        categoriesEn.push(
+                            category?.translations?.en ?? DEFAULT_CATEGORY_EN
+                        );
+                        categoriesId.push(
+                            category?.translations?.id ?? DEFAULT_CATEGORY_ID
+                        );
+                        break;
+                    }
+                }
+
+                if (categoriesEn.length === 0 || categoriesId.length === 0) {
+                    categoriesEn.push(DEFAULT_CATEGORY_EN);
+                    categoriesId.push(DEFAULT_CATEGORY_ID);
+                }
+            } else {
+                categoriesEn.push(DEFAULT_CATEGORY_EN);
+                categoriesId.push(DEFAULT_CATEGORY_ID);
+            }
+
             // eng
             const engPostId = await addPost(
                 source,
@@ -103,8 +147,8 @@ export const postsAddingService = async (source, posts) => {
                     title: post.reworded_title_en,
                     content: post.reworded_content_en,
                     excerpt: post.excerpt_en,
-                    author,
-                    categories: [151],
+                    author: AUTHOR_ID,
+                    categories: categoriesEn,
                 },
 
                 "en",
@@ -119,8 +163,8 @@ export const postsAddingService = async (source, posts) => {
                     title: post.reworded_title_id,
                     content: post.reworded_content_id,
                     excerpt: post.excerpt_id,
-                    author,
-                    categories: [153],
+                    author: AUTHOR_ID,
+                    categories: categoriesId,
                 },
                 "id",
                 POST_STATUS
