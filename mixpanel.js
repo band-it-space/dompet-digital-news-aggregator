@@ -11,6 +11,7 @@ const mixpanel = Mixpanel.init(MIXPANEL_TOKEN, {
 });
 
 export const trackMixpanel = async (
+    event,
     crawler,
     stringDate,
     links,
@@ -19,8 +20,9 @@ export const trackMixpanel = async (
     message
 ) => {
     mixpanel.track(
-        crawler,
+        event,
         {
+            crawler,
             posts_found: totalPosts,
             posted_date: stringDate,
             links: links,
@@ -31,8 +33,9 @@ export const trackMixpanel = async (
             if (err) {
                 console.error(`Error tracking event for ${crawler}:`, err);
             } else {
-                console.log(`Event for ${crawler} tracked successfully`);
-                console.log(`Total vacancies in ${crawler}: ${totalPosts}`);
+                console.log(
+                    `Event:${event} for ${crawler} tracked successfully`
+                );
             }
         }
     );
